@@ -21,7 +21,7 @@ class User(AbstractUser):
     
     def is_customer(self):
         return self.role == 'customer'
-    def is_staff(self):
+    def is_staff_member(self):
         return self.role == 'staff'
     def is_manager(self):
         return self.role == 'manager'
