@@ -3,6 +3,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .forms import CustomerRegistrationForms
+from django.contrib.auth.decorators import login_required
+
 
 # Create your views here.
 def register_view(request):
@@ -48,3 +50,11 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out successfully')
     return redirect('home')
+
+def home_view(request):
+    return render(request, 'users/home.html')
+
+
+@login_required
+def dashboard_view(request):
+    return render(request, 'users/dashboard.html')

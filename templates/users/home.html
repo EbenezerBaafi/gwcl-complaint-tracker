@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="text-center">
+    <h1 class="text-5xl font-bold mb-4 text-blue-600">GWCL Complaint Tracker</h1>
+    <p class="text-xl text-gray-600 mb-8">Track and resolve water-related complaints efficiently</p>
+    <a href="{% url 'register' %}" class="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700">
+        Get Started
+    </a>
+</div>
+{% endblock %}
