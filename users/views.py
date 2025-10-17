@@ -7,7 +7,7 @@ from .forms import CustomerRegistrationForms
 # Create your views here.
 def register_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('dashboard')
     
     if request.method == 'POST':
         form = CustomerRegistrationForms(request.POST)
@@ -15,7 +15,7 @@ def register_view(request):
             user = form.save()
             login(request, user)
             messages.success(request, 'Registration successful! Welcome to GWCL Complaints Tracker')
-            return redirect('home')
+            return redirect('dashboard')
     else:
         form = CustomerRegistrationForms()
 
@@ -24,7 +24,7 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        return redirect('dashboard')
     
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -35,7 +35,7 @@ def login_view(request):
             if user is not None: # User is authenticated
                 login(request, user)
                 messages.success(request, f'Eelcome back {username}.')
-                return redirect('home')
+                return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
     else:
