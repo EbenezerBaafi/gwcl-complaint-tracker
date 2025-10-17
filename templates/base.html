@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %} Ghana Water Complaints Tracker {% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-2xl font-bold">GWCL Complaint Tracker</h1>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                {% if user.isauthenticated  %}
+                    <span class="text-sm">Welcome, {{ user.username }} ({{ user.get_role_display }})</span>
+                    <a href="{% url 'logout' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-4 py-2 rounded ">Login</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-4 py-2 rounded ">Log In</a>
+                    <a href="{% url 'register' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-4 py-2 rounded ">Sign Up</a>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+     {% if messages %}
+     <div class="container mx-auto px-4 mt-4">
+        {% for message in messages %}
+        <div class="bg-{{message.tags }}-100 border border-{{ message.tags }}-400 text-{{message.tags}}-700 px-4 py-3 rounded mb-2">
+            {{ message }}
+        </div>
+        {% endfor %}
+     </div>
+     {% endif %}
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+     <footer class=" bg-gray-100 text-white mt-12 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; 2025 Ghana Water Company Limited. All rights reserved.</p>
+        </div>
+     </footer>
+     {% block extra_js %}{% endblock %}
+</body>
+</html>
