@@ -2,8 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import User
 
-class customerRegistrationForms(UserCreationForm):
-    emai = forms.EmailField(required=True)
+class CustomerRegistrationForms(UserCreationForm):
+    email = forms.EmailField(required=True)
     phone_number = forms.CharField(max_length=15, required=True)
     address = forms.CharField(widget=forms.Textarea, required=True)
 
