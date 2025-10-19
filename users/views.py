@@ -51,7 +51,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, 'You have been logged out successfully')
-    return redirect('home')
+    return redirect('public_dashboard')
 
 def home_view(request):
     # Redirect to public dashboard
