@@ -4,6 +4,8 @@ from django.db.models import Count, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
 from .models import Complaint, StatusUpdate
+from .forms import Complaint, ComplaintForm, ComplaintRatingForm
+from django.contrib import messages
 
 def public_dashboard(request):
     """Public dashboard showing overall statistics"""
@@ -53,3 +55,83 @@ def public_dashboard(request):
     }
     
     return render(request, 'complaints/public_dashboard.html', context)
+
+
+# Customer Views
+
+@login_required
+def submit_complaint(request):
+    """Customer can submit a new complaint"""
+    if not request.user.is_customer():
+        messages.error(request, 'Only customers can submit complaints.')
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST, request.FILES)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            complaint.customer = request.user
+            complaint.save()
+            
+            messages.success(request, f'Complaint submitted successfully! Your complaint ID is {complaint.complaint_id}')
+            return redirect('my_complaints')
+    else:
+        form = ComplaintForm()
+    
+    return render(request, 'complaints/submit_complaint.html', {'form': form})
+
+
+@login_required
+def my_complaints(request):
+    """Customer can view their own complaints"""
+    if not request.user.is_customer():
+        messages.error(request, 'Only customers can view this page.')
+        return redirect('dashboard')
+    
+    complaints = Complaint.objects.filter(customer=request.user).order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status', None)
+    if status_filter:
+        complaints = complaints.filter(status=status_filter)
+    
+    context = {
+        'complaints': complaints,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'complaints/my_complaints.html', context)
+
+
+@login_required
+def complaint_detail(request, complaint_id):
+    """View detailed complaint information with status history"""
+    complaint = get_object_or_404(Complaint, complaint_id=complaint_id)
+    
+    # Check permissions
+    if request.user.is_customer() and complaint.customer != request.user:
+        messages.error(request, 'You can only view your own complaints.')
+        return redirect('my_complaints')
+    
+    # Get status updates
+    status_updates = complaint.status_updates.all()
+    
+    # Handle rating form (only for resolved complaints by the customer)
+    rating_form = None
+    if request.user == complaint.customer and complaint.status in ['resolved', 'closed'] and not complaint.customer_rating:
+        if request.method == 'POST':
+            rating_form = ComplaintRatingForm(request.POST, instance=complaint)
+            if rating_form.is_valid():
+                rating_form.save()
+                messages.success(request, 'Thank you for your feedback!')
+                return redirect('complaint_detail', complaint_id=complaint_id)
+        else:
+            rating_form = ComplaintRatingForm(instance=complaint)
+    
+    context = {
+        'complaint': complaint,
+        'status_updates': status_updates,
+        'rating_form': rating_form,
+    }
+    
+    return render(request, 'complaints/complaint_detail.html', context)
