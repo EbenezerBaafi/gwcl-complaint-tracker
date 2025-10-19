@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .forms import CustomerRegistrationForms
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+
 
 
 # Create your views here.
@@ -52,7 +54,8 @@ def logout_view(request):
     return redirect('home')
 
 def home_view(request):
-    return render(request, 'users/home.html')
+    # Redirect to public dashboard
+    return redirect('public_dashboard')
 
 
 @login_required
