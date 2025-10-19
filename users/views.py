@@ -61,3 +61,16 @@ def home_view(request):
 @login_required
 def dashboard_view(request):
     return render(request, 'users/dashboard.html')
+
+
+@login_required
+def dashboard_view(request):
+    # Redirect based on role
+    if request.user.is_customer():
+        return redirect('my_complaints')
+    elif request.user.is_staff_member():
+        return redirect('staff_dashboard')  # We'll create this later
+    elif request.user.is_manager():
+        return redirect('manager_dashboard')  # We'll create this later
+    
+    return render(request, 'users/dashboard.html')
