@@ -15,4 +15,10 @@ urlpatterns = [
     path('staff/unassigned/', views.unassigned_complaints, name='unassigned_complaints'),
     path('complaint/<str:complaint_id>/update/', views.update_complaint_status, name='update_complaint_status'),
     path('complaint/<str:complaint_id>/assign/', views.assign_complaint, name='assign_complaint'),
+
+    # Manager
+    path('manager/', views.manager_dashboard, name='manager_dashboard'),
+    path('manager/all-complaints/', views.all_complaints, name='all_complaints'),
+    path('manager/staff-performance/', views.staff_performance, name='staff_performance'),
+    path('manager/export/', views.export_complaints, name='export_complaints'),
 ]
