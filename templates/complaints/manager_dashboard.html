@@ -145,7 +145,7 @@
             {% for item in complaints_by_category %}
             <div class="flex items-center">
                 <div class="w-32 text-sm font-medium text-gray-700">
-                    {{ item.category|title|replace:"_":" " }}
+                    {{ item.category|title }}
                 </div>
                 <div class="flex-1 mx-4">
                     <div class="bg-gray-200 rounded-full h-4">
