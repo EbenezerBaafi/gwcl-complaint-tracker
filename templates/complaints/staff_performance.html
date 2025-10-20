@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Performance - GWCL{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Staff Performance Report</h2>
+            <p class="text-gray-600">Detailed analytics for each staff member</p>
+        </div>
+        <a href="{% url 'manager_dashboard' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold transition">
+            Back to Dashboard
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for perf in performance_data %}
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-blue-100 p-3 rounded-full mr-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">
+                        {{ perf.staff.get_full_name|default:perf.staff.username }}
+                    </h3>
+                    <p class="text-sm text-gray-600">{{ perf.staff.email }}</p>
+                </div>
+            </div>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Total Assigned:</span>
+                    <span class="font-bold text-gray-800">{{ perf.total_assigned }}</span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Resolved:</span>
+                    <span class="font-bold text-green-600">{{ perf.resolved }}</span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">In Progress:</span>
+                    <span class="font-bold text-yellow-600">{{ perf.in_progress }}</span>
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Pending:</span>
+                    <span class="font-bold text-orange-600">{{ perf.pending }}</span>
+                </div>
+                
+                <div class="pt-3 border-t border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-600">Resolution Rate:</span>
+                        <span class="font-bold text-blue-600">{{ perf.resolution_rate }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ perf.resolution_rate }}%"></div>
+                    </div>
+                </div>
+                
+                {% if perf.avg_resolution_time %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Avg Resolution:</span>
+                    <span class="font-bold text-purple-600">{{ perf.avg_resolution_time }}h</span>
+                </div>
+                {% endif %}
+                
+                {% if perf.avg_rating %}
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-600">Avg Rating:</span>
+                    <span class="font-bold text-yellow-600">⭐ {{ perf.avg_rating }}/5</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 text-center py-12 bg-white rounded-lg shadow-md">
+            <p class="text-gray-500">No staff members found</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
