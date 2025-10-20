@@ -1,5 +1,5 @@
 from django import forms
-from .models import Complaint
+from .models import Complaint, StatusUpdate
 
 class ComplaintForm(forms.ModelForm):
     class Meta:

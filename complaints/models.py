@@ -113,6 +113,8 @@ class Complaint(models.Model):
 class StatusUpdate(models.Model):
     """Model for tracking complaint status changes and updates"""
     
+    STATUS_CHOICES = Complaint.STATUS_CHOICES  # Use same choices as Complaint
+    
     complaint = models.ForeignKey(
         Complaint, 
         on_delete=models.CASCADE, 
@@ -124,7 +126,7 @@ class StatusUpdate(models.Model):
     )
     
     old_status = models.CharField(max_length=20, blank=True)
-    new_status = models.CharField(max_length=20)
+    new_status = models.CharField(max_length=20, choices=STATUS_CHOICES)  # Add choices here
     notes = models.TextField()
     
     created_at = models.DateTimeField(auto_now_add=True)
