@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager Dashboard - GWCL{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Manager Dashboard</h2>
+            <p class="text-gray-600">Complete overview and analytics</p>
+        </div>
+        <div class="flex gap-3">
+            <a href="{% url 'staff_performance' %}" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-semibold transition">
+                📊 Staff Performance
+            </a>
+            <a href="{% url 'export_complaints' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold transition">
+                📥 Export Data
+            </a>
+        </div>
+    </div>
+    
+    <!-- Main Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+            <p class="text-gray-500 text-sm font-medium">Total Complaints</p>
+            <p class="text-3xl font-bold text-gray-800">{{ total_complaints }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-orange-500">
+            <p class="text-gray-500 text-sm font-medium">Unassigned</p>
+            <p class="text-3xl font-bold text-gray-800">{{ unassigned }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+            <p class="text-gray-500 text-sm font-medium">In Progress</p>
+            <p class="text-3xl font-bold text-gray-800">{{ in_progress }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+            <p class="text-gray-500 text-sm font-medium">Resolved</p>
+            <p class="text-3xl font-bold text-gray-800">{{ resolved }}</p>
+        </div>
+    </div>
+    
+    <!-- Secondary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold mb-2 text-gray-700">This Month</h3>
+            <p class="text-2xl font-bold text-blue-600">{{ complaints_this_month }}</p>
+            <p class="text-sm text-gray-500">New complaints</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold mb-2 text-gray-700">Avg Resolution Time</h3>
+            <p class="text-2xl font-bold text-purple-600">
+                {% if avg_resolution_time %}{{ avg_resolution_time }}h{% else %}N/A{% endif %}
+            </p>
+            <p class="text-sm text-gray-500">For resolved complaints</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-lg font-semibold mb-2 text-gray-700">Overdue</h3>
+            <p class="text-2xl font-bold text-red-600">{{ overdue_complaints|length }}</p>
+            <p class="text-sm text-gray-500">More than 48 hours</p>
+        </div>
+    </div>
+    
+    <!-- Overdue Complaints Alert -->
+    {% if overdue_complaints %}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 class="text-xl font-bold text-red-900 mb-4">⚠ Overdue Complaints ({{ overdue_complaints|length }})</h3>
+        <div class="space-y-3">
+            {% for complaint in overdue_complaints|slice:":5" %}
+            <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-gray-800">{{ complaint.title }}</p>
+                    <p class="text-sm text-gray-600">
+                        {{ complaint.complaint_id }} | 
+                        {% if complaint.assigned_to %}
+                            Assigned to: {{ complaint.assigned_to.username }}
+                        {% else %}
+                            <span class="text-red-600">Unassigned</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'complaint_detail' complaint.complaint_id %}" 
+                   class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                    View
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Staff Performance Summary -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Staff Performance Summary</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff Member</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Assigned</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resolved</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Resolution Rate</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for perf in staff_performance %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">
+                            {{ perf.staff.get_full_name|default:perf.staff.username }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-700">{{ perf.total }}</td>
+                        <td class="px-4 py-3 text-sm text-green-600 font-semibold">{{ perf.resolved }}</td>
+                        <td class="px-4 py-3 text-sm text-orange-600 font-semibold">{{ perf.pending }}</td>
+                        <td class="px-4 py-3 text-sm">
+                            <div class="flex items-center">
+                                <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+                                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ perf.resolution_rate }}%"></div>
+                                </div>
+                                <span class="text-gray-700 font-medium">{{ perf.resolution_rate }}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-4 py-3 text-center text-gray-500">No staff members yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <a href="{% url 'staff_performance' %}" class="text-blue-600 hover:text-blue-800 font-semibold mt-4 inline-block">
+            View Detailed Performance Report →
+        </a>
+    </div>
+    
+    <!-- Complaints by Category -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">Complaints by Category</h3>
+        <div class="space-y-3">
+            {% for item in complaints_by_category %}
+            <div class="flex items-center">
+                <div class="w-32 text-sm font-medium text-gray-700">
+                    {{ item.category|title|replace:"_":" " }}
+                </div>
+                <div class="flex-1 mx-4">
+                    <div class="bg-gray-200 rounded-full h-4">
+                        <div class="bg-blue-600 h-4 rounded-full" style="width: {{ item.percentage }}%"></div>
+                    </div>
+                </div>
+                <div class="w-24 text-right">
+                    <span class="text-sm font-bold text-gray-800">{{ item.count }} ({{ item.percentage }}%)</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500">No complaints yet</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Recent Complaints -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-gray-800">All Complaints</h3>
+            <a href="{% url 'all_complaints' %}" class="text-blue-600 hover:text-blue-800 font-semibold">
+                View All →
+            </a>
+        </div>
+        
+        <!-- Filters -->
+        <div class="mb-4 flex gap-2 flex-wrap">
+            <a href="{% url 'manager_dashboard' %}" 
+               class="px-4 py-2 rounded-lg {% if not status_filter %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition text-sm">
+                All
+            </a>
+            <a href="?status=submitted" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'submitted' %}bg-orange-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition text-sm">
+                Submitted
+            </a>
+            <a href="?status=in_progress" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'in_progress' %}bg-yellow-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition text-sm">
+                In Progress
+            </a>
+            <a href="?status=resolved" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'resolved' %}bg-green-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition text-sm">
+                Resolved
+            </a>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Priority</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned To</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for complaint in all_complaints|slice:":10" %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 text-sm font-medium text-blue-600">
+                            {{ complaint.complaint_id }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-900">
+                            {{ complaint.title|truncatewords:6 }}
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-700">
+                            {{ complaint.get_category_display }}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                {% if complaint.priority == 'critical' %}bg-red-100 text-red-800
+                                {% elif complaint.priority == 'high' %}bg-orange-100 text-orange-800
+                                {% elif complaint.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ complaint.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full
+                                {% if complaint.status == 'resolved' %}bg-green-100 text-green-800
+                                {% elif complaint.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                {% elif complaint.status == 'submitted' %}bg-blue-100 text-blue-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ complaint.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm text-gray-700">
+                            {% if complaint.assigned_to %}
+                                {{ complaint.assigned_to.username }}
+                            {% else %}
+                                <span class="text-red-600">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3 text-sm">
+                            <a href="{% url 'complaint_detail' complaint.complaint_id %}" 
+                               class="text-blue-600 hover:text-blue-800 font-medium">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-4 py-3 text-center text-gray-500">
+                            No complaints found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
