@@ -53,3 +53,42 @@ class ComplaintRatingForm(forms.ModelForm):
                 'placeholder': 'Share your feedback about how we handled your complaint...'
             })
         }
+
+class StatusUpdateForm(forms.ModelForm):
+    class Meta:
+        model = StatusUpdate
+        fields = ['new_status', 'notes']
+        widgets = {
+            'new_status': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'notes': forms.Textarea(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+                'rows': 4,
+                'placeholder': 'Add notes about this status update...'
+            })
+        }
+        labels = {
+            'new_status': 'New Status',
+            'notes': 'Update Notes'
+        }
+
+
+class ComplaintAssignmentForm(forms.ModelForm):
+    class Meta:
+        model = Complaint
+        fields = ['assigned_to', 'priority']
+        widgets = {
+            'assigned_to': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            }),
+            'priority': forms.Select(attrs={
+                'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show staff members in the assigned_to dropdown
+        from users.models import User
+        self.fields['assigned_to'].queryset = User.objects.filter(role='staff')

@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Dashboard - GWCL{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-800">Staff Dashboard</h2>
+            <p class="text-gray-600">Manage your assigned complaints</p>
+        </div>
+        <a href="{% url 'unassigned_complaints' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold transition">
+            View Unassigned Complaints
+        </a>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
+            <p class="text-gray-500 text-sm font-medium">Total Assigned</p>
+            <p class="text-3xl font-bold text-gray-800">{{ total_assigned }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-orange-500">
+            <p class="text-gray-500 text-sm font-medium">Pending</p>
+            <p class="text-3xl font-bold text-gray-800">{{ pending }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
+            <p class="text-gray-500 text-sm font-medium">In Progress</p>
+            <p class="text-3xl font-bold text-gray-800">{{ in_progress }}</p>
+        </div>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
+            <p class="text-gray-500 text-sm font-medium">Resolved</p>
+            <p class="text-3xl font-bold text-gray-800">{{ resolved }}</p>
+        </div>
+    </div>
+    
+    <!-- Filter Buttons -->
+    <div class="bg-white rounded-lg shadow-md p-4">
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'staff_dashboard' %}" 
+               class="px-4 py-2 rounded-lg {% if not status_filter %}bg-blue-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition">
+                All
+            </a>
+            <a href="?status=submitted" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'submitted' %}bg-orange-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition">
+                Pending
+            </a>
+            <a href="?status=in_progress" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'in_progress' %}bg-yellow-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition">
+                In Progress
+            </a>
+            <a href="?status=resolved" 
+               class="px-4 py-2 rounded-lg {% if status_filter == 'resolved' %}bg-green-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %} transition">
+                Resolved
+            </a>
+        </div>
+    </div>
+    
+    <!-- Unassigned Complaints (Quick View) -->
+    {% if unassigned_complaints %}
+    <div class="bg-orange-50 border border-orange-200 rounded-lg p-6">
+        <h3 class="text-xl font-bold text-orange-900 mb-4">⚠ Unassigned Complaints ({{ unassigned_complaints.count }})</h3>
+        <div class="space-y-3">
+            {% for complaint in unassigned_complaints %}
+            <div class="bg-white p-4 rounded-lg shadow-sm flex justify-between items-center">
+                <div>
+                    <p class="font-semibold text-gray-800">{{ complaint.title }}</p>
+                    <p class="text-sm text-gray-600">{{ complaint.complaint_id }} | {{ complaint.get_category_display }}</p>
+                </div>
+                <form method="post" action="{% url 'assign_complaint' complaint.complaint_id %}">
+                    {% csrf_token %}
+                    <button type="submit" name="self_assign" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        Assign to Me
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'unassigned_complaints' %}" class="text-orange-600 hover:text-orange-800 font-semibold mt-4 inline-block">
+            View All Unassigned →
+        </a>
+    </div>
+    {% endif %}
+    
+    <!-- My Assigned Complaints -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">My Assigned Complaints</h3>
+        
+        <div class="space-y-4">
+            {% for complaint in assigned_complaints %}
+            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h4 class="text-xl font-bold text-gray-800">{{ complaint.title }}</h4>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                {% if complaint.status == 'resolved' %}bg-green-100 text-green-800
+                                {% elif complaint.status == 'in_progress' %}bg-yellow-100 text-yellow-800
+                                {% elif complaint.status == 'submitted' %}bg-orange-100 text-orange-800
+                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {{ complaint.get_status_display }}
+                            </span>
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full
+                                {% if complaint.priority == 'critical' %}bg-red-100 text-red-800
+                                {% elif complaint.priority == 'high' %}bg-orange-100 text-orange-800
+                                {% elif complaint.priority == 'medium' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ complaint.get_priority_display }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">
+                            <span class="font-semibold">ID:</span> {{ complaint.complaint_id }} | 
+                            <span class="font-semibold">Category:</span> {{ complaint.get_category_display }}
+                        </p>
+                        <p class="text-gray-700 mb-3">{{ complaint.description|truncatewords:30 }}</p>
+                        <p class="text-sm text-gray-500">
+                            <span class="font-semibold">Submitted:</span> {{ complaint.created_at|date:"M d, Y g:i A" }}
+                            {% if complaint.is_overdue and complaint.status not in 'resolved,closed' %}
+                            <span class="ml-2 text-red-600 font-semibold">⚠ Overdue (>48hrs)</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'complaint_detail' complaint.complaint_id %}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-semibold whitespace-nowrap">
+                            View Details
+                        </a>
+                        <a href="{% url 'update_complaint_status' complaint.complaint_id %}" 
+                           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-semibold whitespace-nowrap">
+                            Update Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No complaints assigned</h3>
+                <p class="text-gray-500 mb-6">Check the unassigned complaints to pick up work</p>
+                <a href="{% url 'unassigned_complaints' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 inline-block font-semibold transition">
+                    View Unassigned Complaints
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
